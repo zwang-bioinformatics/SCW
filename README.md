@@ -21,7 +21,7 @@ Execution command:
 
 -o3 model_scl/coords_scl: Specifies the output file coords_scl in the model_scl directory to store the coordinates of the generated SCL model.
 
--o2 model_rearrangement/coords_reaarange: Specifies the output file coords_reaarange in the model_rearrangement directory to store the coordinates of the generated model during the rearrangement process.
+-o2 model_rearrangement/coords_rearrange: Specifies the output file coords_rearrange in the model_rearrangement directory to store the coordinates of the generated model during the rearrangement process.
 
 -o model_refinement/coords_refine: Specifies the output file coords_refine in the model_refinement directory to store the coordinates of the generated model during the refinement process.
 ## 2. Hi-C contacts file
