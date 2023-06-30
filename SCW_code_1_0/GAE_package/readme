@@ -1,0 +1,40 @@
+##### Install
+1. install Anaconda from https://www.anaconda.com/products/individual
+2. install pytorch using Anaconda from https://pytorch.org/get-started/locally/
+
+GAE needs three required arguments.
+
+(1) number of nodes. For Chr. 1 at 500kb resolution in mm9, the number of nodes = ceil(chr1_length/resolution) = ceil(197195432/500000) = 395
+
+(2) edge file. In the raw Hi-C contact matrix C, if Cij > 0 and i<=j, we think there is an edge between beads i and j. 
+
+So the edge file contains all bead pairs with Hi-C contacts larger than zero in the upper triangle of raw Hi-C matrix.
+each row in the edge file looks like "i j Hi-C_contact_counts". See the "457_7_G_chr1_500kb" for an example, which is the chr1 edge file at 500kb resolution for the cell "457_7_G". NOTE: the first node index is 0, and the last node index is number of nodes minus one.
+
+(3) output file for storing reconstructed adjacency matrix.
+
+
+##### run GAE to get reconstructed adjacency matrix
+
+##### running example 1
+python gae.py --nodes 395 --fin 457_7_G_chr1_500kb --fout 457_7_G_chr1_500kb_1e3 --lr 0.001
+
+It will print the following line:
+AUC:  0.7881164087843356  AP:  0.8270411812667897
+
+Here "--nodes" is the number of nodes, "--fin" is the edge file, and "--fout" is the output file for storing the reconstructed matrix.
+"--lr" is to set learning rate. Since we do not know which learning rate is best, you'd better try different learning rates (three may be enough: 0.01, 0.001, and 0.0001).
+
+##### running example 2
+python gae.py --nodes 395 --fin 457_7_G_chr1_500kb --fout 457_7_G_chr1_500kb_1e2 --lr 0.01
+AUC:  0.8329015846344139  AP:  0.8598440520218056
+##### running example 3
+python gae.py --nodes 395 --fin 457_7_G_chr1_500kb --fout 457_7_G_chr1_500kb_1e4 --lr 0.0001
+AUC:  0.8179654134285514  AP:  0.8348526949916366
+
+AUC: means area under the ROC curve for testing edges.
+AP: means average procision for testing edges.
+
+You can use the two evalutation scores (AUC and AP) to select the best learning rate. For the example shown above, the best learning rate is 0.01.
+
+If you want to run GAE at the whole genome, just calculate the number of nodes and generate the edge file for all chrs. 
