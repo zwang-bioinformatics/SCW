@@ -1,51 +1,49 @@
-# SCW
-SCW (Single-Cell Whole-genome) is a computational method to reconstruct high-resolution 3D whole-genome structures based on the zero-inflated single-cell Hi-C data.
-## 1. Usage
-Compilation command:
+CW has 5 versions aimed at different situations. 
 
-g++ -o scw -pthread -std=c++11 scw.cpp
+We released two folders. One for one-step, the other for two-step.
 
-Execution command:
+In one-step, there are two subfolders. One for GAE, one for 2D Guassian.
 
-./scw -i NXT.896 -res 0.5 -len mm9_mouse_chr_length -or chromosome_order -np 40 -o3 model_scl/coords_scl -o2 model_rearrangement/coords_reaarange -o model_refinement/coords_refine
+In two-step folder, there are three subfolders. One for GAE, one for 2D Gaussian low resolution, and the other is 2D Gaussian high-resolution (recommended for resolutions larger than 100 Kbp, like 50 Kbp, or 20 Kbp). 
 
--i NXT.896: Specifies the input file as NXT.896, which is a Hi-C file containing information about interactions between chromosomes.
+1. One step 2D Gaussian version is the simplest one. For running this, we need one Hi-C contact pair file, one chromosome length file.
 
--res 0.5: Sets the resolution parameter to 0.5 Mb (megabases). This parameter determines the granularity or scale at which the Hi-C data will be processed.
+One contact pair file is in the example_data file, which is GM12878 cell12. The format for Hi-C is "1_0 766645 1_0 16241940", where 1_0 means the paternal of chromosome 1, 1_1 means the maternal of chromosome 1. The format for length is "1_1 249250621", 1_1 is the maternal chromosome 1, and 249250621 is the reference length that matched your data.
 
--len mm9_mouse_chr_length: Uses the mm9_mouse_chr_length file to provide the lengths of each chromosome. The file format consists of one chromosome per line in the format chrX N, where N represents the length of chromosome X.
+"g++ -o so2d -pthread -std=c++11 one_step_2D_Gaussian.cpp";#so2d is the compiled file, you can name it anything you like.
 
--or chromosome_order: Orders the chromosomes based on the number of inter-chromosome Hi-C contacts. This option determines the order of the chromosomes based on the strength of interactions between them.
+"./so2d -i ../../example_data/gm12.hic -res 1 -len ../../example_data/human_list -np 40 -o out_g12_1mb";# -i followed by the Hi-C file, -res followed by the resolution, unit is Mbp, double value used here (0.5, 0.05, or 1, is the right style), -np followed by the thread numbers you will assigned, value type is integer, -o followed by the output file name.
 
--np 40: Specifies the number of threads as 40. This is an optional parameter used to control the number of threads for parallel computation, with a default value of 40.
+2. One step GAE version is requested for one more parameter, which is the imputation file. We need to go to "GAE_package" in the main folder to generate that impuatation file.
 
--o3 model_scl/coords_scl: Specifies the output file coords_scl in the model_scl directory to store the coordinates of the generated SCL model.
+To generate an imputation file, we need to use GAE to generate the imputation matrix, then convert the matrix file for SCW. 
 
--o2 model_rearrangement/coords_rearrange: Specifies the output file coords_rearrange in the model_rearrangement directory to store the coordinates of the generated model during the rearrangement process.
+For example, go to "GAE_package" folder, run "perl generate_edge.pl human_list 1 ../example_data/gm12.hic >gm12_edge" to generate the node edge file first for GAE input, where 1 here represents the 1 Mbp resolution. 
 
--o model_refinement/coords_refine: Specifies the output file coords_refine in the model_refinement directory to store the coordinates of the generated model during the refinement process.
-## 2. Hi-C contacts file
+Then run GAE for gernerating the inputation matrix by using "python gae.py --nodes 6106 --fin gm12_edge --fout gm12_mat --lr 0.001", where --nodes is the number of nodes, --fin is the edge file, and --fout is the output file for storing the reconstructed matrix. --lr is to set the learning rate. The more details you can see in the readme file in GAE_package file. 
 
-The Hi-C files for this project must follow the format specified in the provided sample file "NXT.896". The first and third columns in the file represent the chromosome names, the second and fourth columns represent the pair ends, and the fifth column represents the number of contacts.
+Here, we can convert the GAE imputed matrix to the SCW input we need by using "perl mat_to_hic.pl human_list 1 gm12_mat >gm12_imp.hic"; where 1 is the resolution, human_list is the chromosome length file gm12_mat is the GAE output matrix.
 
-Ensure that your Hi-C files adhere to this format for proper compatibility and accurate processing.
+Similar to one-step GAE, we run the following to generate the modeling:
 
-## 3. GAE_package
+"g++ -o sog -pthread -std=c++11 one_step_GAE.cpp";
 
-In the GAE_package folder, you can generate an imputed Hi-C matrix using the following instructions:
+"./sog -i ../../example_data/gm12.hic -res 1 -len ../../example_data/human_list -np 40 -imp ../../GAE_package/gm12_imp.hic -o out_g12_1mb"; where -imp is followed by the GAE-imputed Hi-C file, the rest are the same with one-step-2D-Gaussian.
 
-python gae.py --nodes 5289 --fin NXT896_500kb.edg --fout gae_imputed_matrix --lr 0.01
+3. Two step 2D Gaussian is the same as one step version.
 
-Explanation:
+"g++ -o st2d -pthread -std=c++11 two_step_2D_Gaussian.cpp";
 
-python gae.py: Runs the Python script gae.py to perform the imputation process using the GAE (Graph Autoencoder) package.
+"./st2d -i ../../example_data/gm12.hic -res 1 -len ../../example_data/human_list -np 40 -o out_g12_1mb";
 
---nodes 5289: Specifies the number of nodes (or dimensions) for the GAE model.
+4. Two step 2D Gaussian high resolution is also the same.
 
---fin NXT896_500kb.edg: Specifies the input edge file NXT896_500kb.edg containing the Hi-C data. Please refer to the readme file in the folder for instructions on generating this edge file.
+"g++ -o st2dh -pthread -std=c++11 scw_two_step_high_resolution.cpp";
 
---fout gae_imputed_matrix: Specifies the output file name as gae_imputed_matrix to store the generated imputed Hi-C matrix.
+"./st2dh -i ../../example_data/gm12.hic -res 0.05 -len ../../example_data/human_list -np 40 -o out_g12_50kb";  
 
---lr 0.01: Sets the learning rate parameter to 0.01, controlling the speed of the learning process for the GAE model.
+5. Two step GAE is similar to one step GAE version, but needs two GAE-imputed Hi-C file, one at 10 Mb resolution, the other is the target resolution.
 
-Please refer to the readme file in the GAE_package folder for detailed instructions on how to generate the required edge file.
+"./stg -i ../../example_data/gm12.hic -res 1 -len ../../example_data/human_list -np 40 -imp0 ../../GAE_package/gm12_imp_10mb.hic -imp ../../GAE_package/gm12_imp_1mb.hic -o out_g12_1mb";# -imp0 is followed by the 10 mb GAE imputated Hi-C, -imp is followed by the target that same with -res followed resolution.
+
+6. Visualization. The output from our tool is 3D coordinates like "1497.45 1502.96 1499.08 1_1 0-10000000", the first three columns are X Y Z coordinates, 1_1 is the chromosome, last column is the beads position. In the output file, the last 46 lines (this number depends on how many chromomoes in your hic file, could be 20, 23, 40, or 46)are the chromosome summary with the bead numbers at the target resolution, which shown as "1_1 230, 1_0 228, 2_1 242, 2_0 242 ...". We provide the tool for coverting the orignal 3D coords to pdb file. Before using it, you need to ignore the last chromosome order lines. We can simply use the following "head -n -46 out_g12_1mb > out_g12_temp"; then go to the example_data folder, using "perl convert_single.pl perl convert_single.pl ../two-step-SCW/two-step-2D-Gaussian/out_g12_temp g12.pdb"; to generate the pdb file for Pymol (not included, you should download it yourself) to visualize.
