@@ -1,4 +1,4 @@
-CW has 5 versions aimed at different situations. 
+SCW has 5 versions aimed at different situations. 
 
 We released two folders. One for one-step, the other for two-step.
 
