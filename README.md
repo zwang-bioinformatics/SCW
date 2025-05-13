@@ -16,10 +16,10 @@ Where **"1_0"** means the paternal of chromosome 1, **"1_1"** means the maternal
 
 The format for the length file is 
 
-**"1_1 249250621
-   1_0 249350632
-   2_1 ... 
-   2_0 ...";**
+**"1_1 249250621  
+    1_0 249350632  
+    2_1 ...  
+    2_0 ...  ";**
 
 Where **"1_1"** is the name of the chromosome, here is maternal chromosome 1, and **"249250621"** is the reference length that matched your data.
 
@@ -86,19 +86,19 @@ Where **"-imp0"** is followed by the 10 mb GAE imputed Hi-C, **"-imp"** is follo
 
 The output from our tool is 3D coordinates like:
 
-**"3565.88 2252.64 2601.2 1_1 1000000-2000000
-   3564.76 2250.88 2599.2 1_1 2000000-3000000
-   ..."**
+**"3565.88 2252.64 2601.2 1_1 1000000-2000000  
+    3564.76 2250.88 2599.2 1_1 2000000-3000000
+    ..."**
 
 The first three columns are X, Y, and Z coordinates, **"1_1"** is the maternal chromosome 1 (for example, **"22_0"** means the paternal chromosome 22), the last column is the beads position. 
 
 In the output file, the last 46 lines (this number depends on how many chromosomes in your hic file, could be 20, 23, 40, or 46) are the chromosome summary with the bead numbers at the target resolution, which are shown as :
 
-**"1_1 230 
-   1_0 228
-   2_1 242
-   2_0 242 
- ...";** 
+**"1_1 230   
+    1_0 228  
+    2_1 242  
+    2_0 242   
+  ...  ";** 
 
 We provide the tool for converting the original 3D coordinates to pdb file. Before using it, you need to ignore the last chromosome order lines. We can simply use the following:
 
